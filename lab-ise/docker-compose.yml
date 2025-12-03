@@ -1,0 +1,25 @@
+version: '3.9'
+
+networks:
+  lab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.0.0/24
+
+services:
+  victim:
+    build: ./victim
+    container_name: lab-ise-victim
+    networks:
+      lab-net:
+        ipv4_address: 10.10.0.10
+    ports:
+      - "8080:8080"
+
+  attacker:
+    build: ./attacker
+    container_name: lab-ise-attacker
+    networks:
+      lab-net:
+        ipv4_address: 10.10.0.20
