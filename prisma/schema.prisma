@@ -1,0 +1,206 @@
+// Prisma schema para Ángel Shop
+// Ejecutar `npx prisma migrate dev` con DATABASE_URL apuntando a PostgreSQL 15+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+  CANCELED
+}
+
+enum ActorType {
+  ADMIN
+  CUSTOMER
+  SYSTEM
+}
+
+enum AdjustmentReason {
+  RESERVATION_HOLD
+  RESERVATION_EXPIRE
+  RESERVATION_CANCEL
+  RESERVATION_CONFIRM
+  MANUAL
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum NotificationType {
+  RESERVATION_CREATED
+  RESERVATION_REMINDER
+  RESERVATION_EXPIRED
+}
+
+enum AdminRole {
+  ADMIN
+  MANAGER
+}
+
+model Product {
+  id           String            @id @default(uuid())
+  name         String
+  description  String?
+  category     String?
+  garmentType  String?
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  variants     ProductVariant[]
+}
+
+model ProductVariant {
+  id            String               @id @default(uuid())
+  product       Product              @relation(fields: [productId], references: [id])
+  productId     String
+  sku           String               @unique
+  size          String
+  color         String
+  price         Decimal              @db.Decimal(10, 2)
+  stockOnHand   Int                  @default(0)
+  stockReserved Int                  @default(0)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  reservationItems ReservationItem[]
+  adjustments   InventoryAdjustment[]
+
+  @@unique([productId, size, color])
+}
+
+model CustomerContact {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String?  @unique
+  phone     String?  @unique
+  country   String?  @default("CR")
+  isVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reservations Reservation[]
+  otpTokens  OtpToken[]
+}
+
+model Reservation {
+  id               String             @id @default(uuid())
+  code             String             @unique
+  customer         CustomerContact    @relation(fields: [customerId], references: [id])
+  customerId       String
+  status           ReservationStatus  @default(PENDING)
+  expiresAt        DateTime
+  expiresInHours   Int
+  totalAmount      Decimal            @db.Decimal(10, 2)
+  depositAmount    Decimal?           @db.Decimal(10, 2)
+  note             String?
+  analyticsSource  String?
+  utmSource        String?
+  utmMedium        String?
+  utmCampaign      String?
+  confirmedAt      DateTime?
+  expiredAt        DateTime?
+  canceledAt       DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  items            ReservationItem[]
+  events           ReservationEvent[]
+  adjustments      InventoryAdjustment[]
+
+  @@index([status, expiresAt])
+  @@index([customerId, status])
+}
+
+model ReservationItem {
+  id             String        @id @default(uuid())
+  reservation    Reservation   @relation(fields: [reservationId], references: [id])
+  reservationId  String
+  variant        ProductVariant @relation(fields: [variantId], references: [id])
+  variantId      String
+  quantity       Int
+  unitPrice      Decimal       @db.Decimal(10, 2)
+  subtotal       Decimal       @db.Decimal(10, 2)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([variantId])
+}
+
+model AdminUser {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String?
+  passwordHash String
+  role         AdminRole @default(MANAGER)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  adjustments  InventoryAdjustment[]
+}
+
+model OtpToken {
+  id         String   @id @default(uuid())
+  target     String
+  channel    NotificationChannel
+  code       String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now())
+  customer   CustomerContact? @relation(fields: [customerId], references: [id])
+  customerId String?
+
+  @@index([target, channel])
+}
+
+model NotificationTemplate {
+  id        String               @id @default(uuid())
+  type      NotificationType
+  channel   NotificationChannel
+  subject   String?
+  body      String
+  isActive  Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@unique([type, channel])
+}
+
+model ReservationEvent {
+  id             String            @id @default(uuid())
+  reservation    Reservation       @relation(fields: [reservationId], references: [id])
+  reservationId  String
+  actorType      ActorType
+  actorId        String?
+  eventType      String
+  notes          String?
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+
+  @@index([reservationId])
+}
+
+model InventoryAdjustment {
+  id             String             @id @default(uuid())
+  variant        ProductVariant     @relation(fields: [variantId], references: [id])
+  variantId      String
+  reservation    Reservation?       @relation(fields: [reservationId], references: [id])
+  reservationId  String?
+  admin          AdminUser?         @relation(fields: [adminId], references: [id])
+  adminId        String?
+  reason         AdjustmentReason
+  quantityChange Int
+  notes          String?
+  createdAt      DateTime           @default(now())
+
+  @@index([variantId])
+  @@index([reservationId])
+}
