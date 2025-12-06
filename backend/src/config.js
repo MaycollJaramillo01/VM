@@ -5,6 +5,9 @@ dotenv.config();
 export const config = {
   port: process.env.PORT || 4000,
   jwtSecret: process.env.JWT_SECRET || 'dev-secret',
+  refreshSecret: process.env.REFRESH_SECRET || 'dev-refresh',
+  customerTokenTtl: process.env.CUSTOMER_TOKEN_TTL || '12h',
+  adminTokenTtl: process.env.ADMIN_TOKEN_TTL || '8h',
   allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173'],
   emailFrom: process.env.EMAIL_FROM || 'Angel Shop <no-reply@angelshop.cr>',
   smtp: {
