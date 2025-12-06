@@ -4,13 +4,15 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import http from 'http';
 import { Server } from 'socket.io';
-import cron from 'node-cron';
 import bcrypt from 'bcryptjs';
 import { prisma } from './prisma.js';
 import { config } from './config.js';
 import publicRoutes from './routes/public.js';
 import adminRoutes from './routes/admin.js';
 import { expirePendingReservations } from './services/reservationService.js';
+import cron from 'node-cron';
+
+const enableCron = process.env.ENABLE_CRON !== 'false';
 
 const app = express();
 const server = http.createServer(app);
@@ -41,10 +43,12 @@ realtime.on('connection', (socket) => {
   socket.on('join', (room) => socket.join(room));
 });
 
-cron.schedule('*/5 * * * *', async () => {
-  const count = await expirePendingReservations(realtime);
-  if (count > 0) realtime.emit('variant-stock-updated');
-});
+if (enableCron) {
+  cron.schedule('*/5 * * * *', async () => {
+    const count = await expirePendingReservations(realtime);
+    if (count > 0) realtime.emit('variant-stock-updated');
+  });
+}
 
 async function seedAdmin() {
   const existing = await prisma.adminUser.findUnique({ where: { email: config.adminSeed.email } });
