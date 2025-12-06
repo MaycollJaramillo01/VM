@@ -1,0 +1,20 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export const config = {
+  port: process.env.PORT || 4000,
+  jwtSecret: process.env.JWT_SECRET || 'dev-secret',
+  allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173'],
+  emailFrom: process.env.EMAIL_FROM || 'Angel Shop <no-reply@angelshop.cr>',
+  smtp: {
+    host: process.env.SMTP_HOST || 'localhost',
+    port: Number(process.env.SMTP_PORT || 1025),
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  adminSeed: {
+    email: process.env.ADMIN_DEFAULT_EMAIL || 'admin@angelshop.cr',
+    password: process.env.ADMIN_DEFAULT_PASSWORD || 'changeme',
+  }
+};

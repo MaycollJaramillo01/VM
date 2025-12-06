@@ -1,5 +1,5 @@
-// Prisma schema para Ángel Shop
-// Ejecutar `npx prisma migrate dev` con DATABASE_URL apuntando a PostgreSQL 15+
+// Prisma schema for Ángel Shop
+// PostgreSQL 15+
 
 generator client {
   provider = "prisma-client-js"
@@ -17,103 +17,84 @@ enum ReservationStatus {
   CANCELED
 }
 
-enum ActorType {
-  ADMIN
-  CUSTOMER
-  SYSTEM
-}
-
-enum AdjustmentReason {
-  RESERVATION_HOLD
-  RESERVATION_EXPIRE
-  RESERVATION_CANCEL
-  RESERVATION_CONFIRM
-  MANUAL
-}
-
-enum NotificationChannel {
-  EMAIL
-  SMS
-  WHATSAPP
-}
-
-enum NotificationType {
-  RESERVATION_CREATED
-  RESERVATION_REMINDER
-  RESERVATION_EXPIRED
-}
-
 enum AdminRole {
   ADMIN
   MANAGER
 }
 
+model AppConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Product {
-  id           String            @id @default(uuid())
-  name         String
-  description  String?
-  category     String?
-  garmentType  String?
-  isActive     Boolean           @default(true)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  variants     ProductVariant[]
+  id          String           @id @default(uuid())
+  name        String
+  description String?
+  category    String?
+  garmentType String?
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  variants    ProductVariant[]
 }
 
 model ProductVariant {
-  id            String               @id @default(uuid())
-  product       Product              @relation(fields: [productId], references: [id])
+  id            String             @id @default(uuid())
+  product       Product            @relation(fields: [productId], references: [id])
   productId     String
-  sku           String               @unique
+  sku           String             @unique
   size          String
   color         String
-  price         Decimal              @db.Decimal(10, 2)
-  stockOnHand   Int                  @default(0)
-  stockReserved Int                  @default(0)
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
-  reservationItems ReservationItem[]
+  price         Decimal            @db.Decimal(10, 2)
+  stockOnHand   Int                @default(0)
+  stockReserved Int                @default(0)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  items         ReservationItem[]
   adjustments   InventoryAdjustment[]
 
   @@unique([productId, size, color])
 }
 
-model CustomerContact {
-  id        String   @id @default(uuid())
+model Customer {
+  id        String    @id @default(uuid())
   name      String?
-  email     String?  @unique
-  phone     String?  @unique
-  country   String?  @default("CR")
-  isVerified Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  email     String?   @unique
+  phone     String?   @unique
+  isVerified Boolean  @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   reservations Reservation[]
-  otpTokens  OtpToken[]
+  otps      OtpCode[]
 }
 
 model Reservation {
-  id               String             @id @default(uuid())
-  code             String             @unique
-  customer         CustomerContact    @relation(fields: [customerId], references: [id])
-  customerId       String
-  status           ReservationStatus  @default(PENDING)
-  expiresAt        DateTime
-  expiresInHours   Int
-  totalAmount      Decimal            @db.Decimal(10, 2)
-  depositAmount    Decimal?           @db.Decimal(10, 2)
-  note             String?
-  analyticsSource  String?
-  utmSource        String?
-  utmMedium        String?
-  utmCampaign      String?
-  confirmedAt      DateTime?
-  expiredAt        DateTime?
-  canceledAt       DateTime?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  items            ReservationItem[]
-  events           ReservationEvent[]
-  adjustments      InventoryAdjustment[]
+  id             String            @id @default(uuid())
+  code           String            @unique
+  customer       Customer          @relation(fields: [customerId], references: [id])
+  customerId     String
+  status         ReservationStatus @default(PENDING)
+  expiresAt      DateTime
+  expiresInHours Int
+  totalAmount    Decimal           @db.Decimal(10, 2)
+  depositAmount  Decimal?          @db.Decimal(10, 2)
+  note           String?
+  analyticsSource String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  confirmedAt    DateTime?
+  expiredAt      DateTime?
+  canceledAt     DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  items          ReservationItem[]
+  events         ReservationEvent[]
+  adjustments    InventoryAdjustment[]
 
   @@index([status, expiresAt])
   @@index([customerId, status])
@@ -146,44 +127,30 @@ model AdminUser {
   adjustments  InventoryAdjustment[]
 }
 
-model OtpToken {
+model OtpCode {
   id         String   @id @default(uuid())
   target     String
-  channel    NotificationChannel
   code       String
   expiresAt  DateTime
   consumedAt DateTime?
   attempts   Int      @default(0)
   createdAt  DateTime @default(now())
-  customer   CustomerContact? @relation(fields: [customerId], references: [id])
+  customer   Customer? @relation(fields: [customerId], references: [id])
   customerId String?
 
-  @@index([target, channel])
-}
-
-model NotificationTemplate {
-  id        String               @id @default(uuid())
-  type      NotificationType
-  channel   NotificationChannel
-  subject   String?
-  body      String
-  isActive  Boolean              @default(true)
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-
-  @@unique([type, channel])
+  @@index([target])
 }
 
 model ReservationEvent {
-  id             String            @id @default(uuid())
-  reservation    Reservation       @relation(fields: [reservationId], references: [id])
+  id             String      @id @default(uuid())
+  reservation    Reservation @relation(fields: [reservationId], references: [id])
   reservationId  String
-  actorType      ActorType
+  actorType      String
   actorId        String?
   eventType      String
   notes          String?
   metadata       Json?
-  createdAt      DateTime          @default(now())
+  createdAt      DateTime    @default(now())
 
   @@index([reservationId])
 }
@@ -196,7 +163,7 @@ model InventoryAdjustment {
   reservationId  String?
   admin          AdminUser?         @relation(fields: [adminId], references: [id])
   adminId        String?
-  reason         AdjustmentReason
+  reason         String
   quantityChange Int
   notes          String?
   createdAt      DateTime           @default(now())
