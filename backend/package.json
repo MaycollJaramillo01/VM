@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed": "node scripts/seedProducts.js"
   },
   "dependencies": {
     "@prisma/client": "latest",

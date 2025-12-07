@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Card, CardContent, Typography, CardActions, Button, Chip } from '@mui/material';
+import { Grid, Card, CardContent, Typography, CardActions, Button, Chip, CardMedia } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
@@ -26,6 +26,9 @@ export default function CatalogPage() {
       {products.map((product) => (
         <Grid item xs={12} md={4} key={product.id}>
           <Card>
+            {product.imageUrl && (
+              <CardMedia component="img" height="200" image={product.imageUrl} alt={product.name} />
+            )}
             <CardContent>
               <Typography variant="h6">{product.name}</Typography>
               <Typography variant="body2" color="text.secondary">

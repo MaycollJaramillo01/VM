@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from './prisma.js';
 import { config } from './config.js';
 import publicRoutes from './routes/public.js';
+import productsRoutes from './routes/products.js';
 import adminRoutes from './routes/admin.js';
 import { expirePendingReservations } from './services/reservationService.js';
 import cron from 'node-cron';
@@ -34,6 +35,7 @@ app.use(express.json());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }));
 
 app.use('/api/public', publicRoutes);
+app.use('/api/products', productsRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
