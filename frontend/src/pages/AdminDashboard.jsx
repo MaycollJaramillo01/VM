@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, TextField, Button, Stack, Card, CardContent, Grid } from '@mui/material';
+import { Typography, TextField, Button, Stack, Card, CardContent, Grid, Divider } from '@mui/material';
+import InsightsIcon from '@mui/icons-material/Insights';
 
 const api = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -28,26 +29,64 @@ export default function AdminDashboard() {
 
   return (
     <Stack spacing={3}>
-      <Typography variant="h5">Panel admin</Typography>
-      {!token && (
-        <Stack direction="row" spacing={2}>
-          <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <TextField label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          <Button variant="contained" onClick={login}>Ingresar</Button>
+      <Card sx={{ p: 3 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <InsightsIcon color="primary" />
+          <div>
+            <Typography variant="h5">Panel admin</Typography>
+            <Typography color="text.secondary">Estadísticas rápidas para monitorear la tienda.</Typography>
+          </div>
         </Stack>
-      )}
+        {!token && (
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 2 }}>
+            <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth />
+            <TextField
+              label="Contraseña"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              fullWidth
+            />
+            <Button variant="contained" onClick={login} sx={{ minWidth: 160 }}>
+              Ingresar
+            </Button>
+          </Stack>
+        )}
+      </Card>
+
       {overview && (
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
-            <Card><CardContent><Typography>Productos: {overview.productCount}</Typography></CardContent></Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card><CardContent><Typography>Reservas: {overview.reservationCount}</Typography></CardContent></Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card><CardContent><Typography>Activas: {overview.activeReservations}</Typography></CardContent></Card>
-          </Grid>
-        </Grid>
+        <Card sx={{ p: 3 }}>
+          <Stack spacing={2}>
+            <Typography variant="subtitle1">Resumen en vivo</Typography>
+            <Divider />
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography color="text.secondary">Productos</Typography>
+                    <Typography variant="h5">{overview.productCount}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography color="text.secondary">Reservas</Typography>
+                    <Typography variant="h5">{overview.reservationCount}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography color="text.secondary">Activas</Typography>
+                    <Typography variant="h5">{overview.activeReservations}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Stack>
+        </Card>
       )}
     </Stack>
   );
