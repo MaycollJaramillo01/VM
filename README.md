@@ -18,3 +18,13 @@ Este repositorio contiene el diseño inicial desde cero para una plataforma web 
 3. Implementar cron de expiración con `node-cron` y notificaciones con Nodemailer/Twilio.
 4. Construir frontend React (MUI) y panel admin usando los contratos descritos.
 5. Añadir métricas internas y GA4/meta pixel según `docs/api-design.md`.
+
+## Ejecución rápida
+
+Con Docker y Docker Compose instalados, puedes levantar toda la pila (base de datos, backend, frontend y Mailhog) con un solo comando desde la raíz del repositorio:
+
+```bash
+./run.sh
+```
+
+El script autodetecta si tu entorno usa `docker compose` o `docker-compose`, y admite pasarle argumentos extras (por ejemplo, `./run.sh -d` para modo "detached").
