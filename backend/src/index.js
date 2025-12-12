@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import http from 'http';
 import { Server } from 'socket.io';
 import bcrypt from 'bcryptjs';
-import { prisma } from './prisma.js';
+import { initializeDatabase, prisma } from './prisma.js';
 import { config } from './config.js';
 import publicRoutes from './routes/public.js';
 import adminRoutes from './routes/admin.js';
@@ -58,8 +58,16 @@ async function seedAdmin() {
   }
 }
 
-seedAdmin();
+async function bootstrap() {
+  await initializeDatabase();
+  await seedAdmin();
 
-server.listen(config.port, () => {
-  console.log(`API listening on ${config.port}`);
+  server.listen(config.port, () => {
+    console.log(`API listening on ${config.port}`);
+  });
+}
+
+bootstrap().catch((error) => {
+  console.error('Failed to start API server:', error);
+  process.exit(1);
 });
