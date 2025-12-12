@@ -18,6 +18,6 @@ export const config = {
   },
   adminSeed: {
     email: process.env.ADMIN_DEFAULT_EMAIL || 'admin@angelshop.cr',
-    password: process.env.ADMIN_DEFAULT_PASSWORD || 'changeme',
+    password: process.env.ADMIN_DEFAULT_PASSWORD || '1234',
   }
 };
