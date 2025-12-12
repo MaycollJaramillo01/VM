@@ -6,6 +6,7 @@ COPY backend/package*.json ./
 RUN npm install
 
 COPY backend/. .
+COPY prisma ./prisma
 COPY ecosystem.config.cjs ./ecosystem.config.cjs
 
 RUN npm install -g pm2 \
