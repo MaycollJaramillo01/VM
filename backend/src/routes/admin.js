@@ -101,6 +101,7 @@ const productSchema = z.object({
     description: z.string().optional(),
     category: z.string().optional(),
     garmentType: z.string().optional(),
+    imageUrl: z.string().url().optional(),
     variants: z.array(
       z.object({
         sku: z.string(),
@@ -122,7 +123,15 @@ router.post('/products', requireRole('ADMIN'), validate(productSchema), async (r
   res.status(201).json(product);
 });
 
-const productUpdateSchema = z.object({ body: z.object({ name: z.string().optional(), description: z.string().optional() }) });
+const productUpdateSchema = z.object({
+  body: z.object({
+    name: z.string().optional(),
+    description: z.string().optional(),
+    imageUrl: z.string().url().optional(),
+    category: z.string().optional(),
+    garmentType: z.string().optional(),
+  }),
+});
 router.patch('/products/:id', requireRole('ADMIN'), validate(productUpdateSchema), async (req, res) => {
   const product = await prisma.product.update({ where: { id: req.params.id }, data: req.validated.body });
   res.json(product);

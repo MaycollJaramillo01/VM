@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardContent, Typography, MenuItem, TextField, Button, Stack } from '@mui/material';
+import { Card, CardContent, Typography, MenuItem, TextField, Button, Stack, CardMedia } from '@mui/material';
 
 const api = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -37,6 +37,7 @@ export default function ProductPage() {
 
   return (
     <Card>
+      {product.imageUrl && <CardMedia component="img" height="260" image={product.imageUrl} alt={product.name} />}
       <CardContent>
         <Typography variant="h5">{product.name}</Typography>
         <Typography sx={{ mb: 2 }}>{product.description}</Typography>
